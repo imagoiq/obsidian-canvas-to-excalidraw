@@ -36,6 +36,11 @@ class CanvasToExcalidrawPlugin extends Plugin {
                 const fontSize = 16;
                 const lineHeight = 20;
 
+                // Extract colors with fallback
+                const style = node.style || {};
+                const backgroundColor = style.backgroundColor || style.fill || '#ffffff';
+                const strokeColor = style.borderColor || style.stroke || '#000000';
+
                 // Word-wrapping logic with word boundaries
                 const words = node.text.split(' ');
                 let currentLine = '';
@@ -76,12 +81,12 @@ class CanvasToExcalidrawPlugin extends Plugin {
                     width: nodeWidth - padding * 2,
                     height: calculatedHeight - padding * 2,
                     angle: 0,
-                    strokeColor: '#000000',
-                    backgroundColor: '#ffffff',
+                    strokeColor: strokeColor,
+                    backgroundColor: backgroundColor,
                     fillStyle: 'solid',
                     strokeWidth: 1,
                     strokeStyle: 'solid',
-                    roughness: 1,
+                    roughness: 0,
                     opacity: 100,
                     seed: Math.floor(Math.random() * 100000),
                     groupIds: [],
@@ -96,7 +101,7 @@ class CanvasToExcalidrawPlugin extends Plugin {
                     updated: Date.now()
                 });
 
-                // Add a rectangle outline for the node
+                // Add a rectangle outline for the node with style
                 elements.push({
                     type: 'rectangle',
                     version: 2,
@@ -108,12 +113,12 @@ class CanvasToExcalidrawPlugin extends Plugin {
                     width: nodeWidth,
                     height: calculatedHeight,
                     angle: 0,
-                    strokeColor: '#000000',
-                    backgroundColor: 'transparent',
+                    strokeColor: strokeColor,
+                    backgroundColor: backgroundColor,
                     fillStyle: 'solid',
                     strokeWidth: 2,
                     strokeStyle: 'solid',
-                    roughness: 1,
+                    roughness: 0,
                     opacity: 100,
                     seed: Math.floor(Math.random() * 100000),
                     groupIds: [],
@@ -123,7 +128,7 @@ class CanvasToExcalidrawPlugin extends Plugin {
                 });
             });
 
-            // Convert edges to Excalidraw arrows
+            // Convert edges to Excalidraw arrows with custom styles
             canvasData.edges.forEach((edge) => {
                 const fromNode = nodePositions[edge.fromNode];
                 const toNode = nodePositions[edge.toNode];
@@ -137,18 +142,18 @@ class CanvasToExcalidrawPlugin extends Plugin {
                     elements.push({
                         type: 'arrow',
                         version: 2,
-                        versionNonce: Math.floor(Math.floor(Math.random() * 100000)),
+                        versionNonce: Math.floor(Math.random() * 100000),
                         isDeleted: false,
                         id: edge.id,
                         x: startX,
                         y: startY,
                         points: [[0, 0], [endX - startX, endY - startY]],
-                        strokeColor: '#000000',
+                        strokeColor: '#000000',  // Default to black for arrows
                         backgroundColor: 'transparent',
                         fillStyle: 'solid',
                         strokeWidth: 2,
                         strokeStyle: 'solid',
-                        roughness: 1,
+                        roughness: 0,
                         opacity: 100,
                         seed: Math.floor(Math.random() * 100000),
                         updated: Date.now()
