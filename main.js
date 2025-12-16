@@ -38,15 +38,16 @@ class CanvasToExcalidrawPlugin extends Plugin {
 
             // Convert nodes to Excalidraw elements
             for (const node of canvasData.nodes) {
-                if(node?.text) {
+                if(node.type === 'text') {
                     this.addTextNode(node);
                 }
-                if(node?.file) {
+                if(node.type === 'file') {
                     await this.addImageNode(node);
                 }
+                if(node.type === 'group') {
+                    await this.addGroupNode(node);
+                }
             }
-
-            console.log('canvasDaa', canvasData);
 
             // Convert edges to Excalidraw arrows with custom styles
             for (const edge of canvasData.edges) {
@@ -221,8 +222,6 @@ class CanvasToExcalidrawPlugin extends Plugin {
         const fromNode = this.nodePositions[edge.fromNode];
         const toNode = this.nodePositions[edge.toNode];
 
-        console.log('edge', fromNode, toNode);
-
         if (fromNode && toNode) {
             const startX = fromNode.x + fromNode.width;
             const startY = fromNode.y + fromNode.height / 2;
@@ -249,6 +248,35 @@ class CanvasToExcalidrawPlugin extends Plugin {
                 updated: Date.now()
             });
         }
+    }
+
+    addGroupNode(node) {
+        this.elements.push({
+            type: 'frame',
+            version: 2,
+            versionNonce: Math.floor(Math.random() * 100000),
+            isDeleted: false,
+            id: node.id,
+            name: node.label,
+            groupIds: [],
+            frameId: null,
+            x: node.x,
+            y: node.y,
+            width: node.width,
+            height: node.height,
+            roughness: 0,
+            opacity: 40,
+            seed: Math.floor(Math.random() * 100000),
+            updated: Date.now()
+        });
+
+        // Store node bounds for arrow positioning
+        this.nodePositions[node.id] = {
+            x: node.x,
+            y: node.y,
+            width: node.width,
+            height: node.height
+        };
     }
 
     onunload() {
