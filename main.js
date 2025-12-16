@@ -46,38 +46,12 @@ class CanvasToExcalidrawPlugin extends Plugin {
                 }
             }
 
+            console.log('canvasDaa', canvasData);
+
             // Convert edges to Excalidraw arrows with custom styles
-            canvasData.edges.forEach((edge) => {
-                const fromNode = this.nodePositions[edge.fromNode];
-                const toNode = this.nodePositions[edge.toNode];
-
-                if (fromNode && toNode) {
-                    const startX = fromNode.x + fromNode.width;
-                    const startY = fromNode.y + fromNode.height / 2;
-                    const endX = toNode.x;
-                    const endY = toNode.y + toNode.height / 2;
-
-                    this.elements.push({
-                        type: 'arrow',
-                        version: 2,
-                        versionNonce: Math.floor(Math.random() * 100000),
-                        isDeleted: false,
-                        id: edge.id,
-                        x: startX,
-                        y: startY,
-                        points: [[0, 0], [endX - startX, endY - startY]],
-                        strokeColor: '#000000',  // Default to black for arrows
-                        backgroundColor: 'transparent',
-                        fillStyle: 'solid',
-                        strokeWidth: 2,
-                        strokeStyle: 'solid',
-                        roughness: 0,
-                        opacity: 100,
-                        seed: Math.floor(Math.random() * 100000),
-                        updated: Date.now()
-                    });
-                }
-            });
+            for (const edge of canvasData.edges) {
+                this.addArrowEdge(edge);
+            }
 
             const excalidrawData = {
                 type: 'excalidraw',
@@ -130,6 +104,14 @@ class CanvasToExcalidrawPlugin extends Plugin {
             seed: Math.floor(Math.random() * 100000),
             updated: Date.now()
         });
+
+        // Store node bounds for arrow positioning
+        this.nodePositions[node.id] = {
+            x: node.x,
+            y: node.y,
+            width: node.width,
+            height: node.height
+        };
     }
 
     addTextNode(node) {
@@ -184,7 +166,7 @@ class CanvasToExcalidrawPlugin extends Plugin {
             width: nodeWidth,
             height: calculatedHeight,
             angle: 0,
-            strokeColor: strokeColor,
+            strokeColor: "#AAAAAA",
             backgroundColor: backgroundColor,
             fillStyle: 'solid',
             strokeWidth: 2,
@@ -233,6 +215,40 @@ class CanvasToExcalidrawPlugin extends Plugin {
             containerId: `${node.id}-border`,
             updated: Date.now()
         });
+    }
+
+    addArrowEdge(edge) {
+        const fromNode = this.nodePositions[edge.fromNode];
+        const toNode = this.nodePositions[edge.toNode];
+
+        console.log('edge', fromNode, toNode);
+
+        if (fromNode && toNode) {
+            const startX = fromNode.x + fromNode.width;
+            const startY = fromNode.y + fromNode.height / 2;
+            const endX = toNode.x;
+            const endY = toNode.y + toNode.height / 2;
+
+            this.elements.push({
+                type: 'arrow',
+                version: 2,
+                versionNonce: Math.floor(Math.random() * 100000),
+                isDeleted: false,
+                id: edge.id,
+                x: startX,
+                y: startY,
+                points: [[0, 0], [endX - startX, endY - startY]],
+                strokeColor: '#AAAAAA',  // Default to light gray for arrows
+                backgroundColor: 'transparent',
+                fillStyle: 'solid',
+                strokeWidth: 2,
+                strokeStyle: 'solid',
+                roughness: 0,
+                opacity: 100,
+                seed: Math.floor(Math.random() * 100000),
+                updated: Date.now()
+            });
+        }
     }
 
     onunload() {
