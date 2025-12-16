@@ -172,6 +172,35 @@ class CanvasToExcalidrawPlugin extends Plugin {
             height: calculatedHeight
         };
 
+        // Add a rectangle outline for the node with style
+        this.elements.push({
+            type: 'rectangle',
+            version: 2,
+            versionNonce: Math.floor(Math.random() * 100000),
+            isDeleted: false,
+            id: `${node.id}-border`,
+            x: node.x,
+            y: node.y,
+            width: nodeWidth,
+            height: calculatedHeight,
+            angle: 0,
+            strokeColor: strokeColor,
+            backgroundColor: backgroundColor,
+            fillStyle: 'solid',
+            strokeWidth: 2,
+            strokeStyle: 'solid',
+            roughness: 0,
+            opacity: 100,
+            seed: Math.floor(Math.random() * 100000),
+            groupIds: [],
+            frameId: null,
+            boundElements: [{
+                id: node.id,
+                type: 'text'
+            }],
+            updated: Date.now()
+        });
+
         // Create the text node
         this.elements.push({
             type: 'text',
@@ -195,39 +224,13 @@ class CanvasToExcalidrawPlugin extends Plugin {
             seed: Math.floor(Math.random() * 100000),
             groupIds: [],
             frameId: null,
-            boundElementIds: [],
+            boundElementIds: null,
             fontSize: fontSize,
             fontFamily: 6,
-            textAlign: 'center',
-            verticalAlign: 'middle',
+            textAlign: 'left',
+            verticalAlign: 'top',
             baseline: 16,
-            containerId: null,
-            updated: Date.now()
-        });
-
-        // Add a rectangle outline for the node with style
-        this.elements.push({
-            type: 'rectangle',
-            version: 2,
-            versionNonce: Math.floor(Math.random() * 100000),
-            isDeleted: false,
-            id: `${node.id}-border`,
-            x: node.x,
-            y: node.y,
-            width: nodeWidth,
-            height: calculatedHeight,
-            angle: 0,
-            strokeColor: strokeColor,
-            backgroundColor: backgroundColor,
-            fillStyle: 'solid',
-            strokeWidth: 2,
-            strokeStyle: 'solid',
-            roughness: 0,
-            opacity: 100,
-            seed: Math.floor(Math.random() * 100000),
-            groupIds: [],
-            frameId: null,
-            boundElementIds: [],
+            containerId: `${node.id}-border`,
             updated: Date.now()
         });
     }
