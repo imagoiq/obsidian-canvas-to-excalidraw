@@ -409,18 +409,14 @@ class CanvasToExcalidrawPlugin extends Plugin {
 }
 
 function isWithinFrame(innerBox, outerBox) {
-    // Destructure inner box and outer box coordinates and dimensions
     const { x: innerX, y: innerY, width: innerWidth, height: innerHeight } = innerBox;
     const { x: outerX, y: outerY, width: outerWidth, height: outerHeight } = outerBox;
-
-    // Check if the inner box's top-left corner is inside the outer box
+    
     const isTopLeftInside = innerX >= outerX && innerY >= outerY;
-
-    // Check if the inner box's bottom-right corner is inside the outer box
+    
     const isBottomRightInside = (innerX + innerWidth) <= (outerX + outerWidth) &&
         (innerY + innerHeight) <= (outerY + outerHeight);
-
-    // The inner box is inside the outer box if both conditions are true
+    
     return isTopLeftInside && isBottomRightInside;
 }
 
