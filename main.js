@@ -56,7 +56,7 @@ class CanvasToExcalidrawPlugin extends Plugin {
 
             const excalidrawData = {
                 type: 'excalidraw',
-                version: 3,
+                version: 2,
                 source: 'obsidian-canvas-converter',
                 elements: this.elements,
                 appState: {
