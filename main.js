@@ -82,43 +82,48 @@ class CanvasToExcalidrawPlugin extends Plugin {
     }
 
     async convertImageNode(node) {
-        const fileContent = await this.app.vault.adapter.readBinary(node.file);
+        try {
+            const fileContent = await this.app.vault.adapter.readBinary(node.file);
 
-        // create the file node
-        const { mimeType } = getMimeTypeFromArrayBuffer(fileContent);
+            // create the file node
+            const { mimeType } = getMimeTypeFromArrayBuffer(fileContent);
 
-        this.files[node.id] = {
-            mimeType,
-            id: node.id,
-            dataURL: `data:${mimeType};base64,${arrayBufferToBase64(fileContent)}`,
-            created: Date.now(),
-            lastRetrieved: Date.now(),
-        };
+            this.files[node.id] = {
+                mimeType,
+                id: node.id,
+                dataURL: `data:${mimeType};base64,${arrayBufferToBase64(fileContent)}`,
+                created: Date.now(),
+                lastRetrieved: Date.now(),
+            };
 
-        // create the image node
-        this.elements.push({
-            type: 'image',
-            version: 2,
-            versionNonce: Math.floor(Math.random() * 100000),
-            isDeleted: false,
-            id: node.id,
-            x: node.x,
-            y: node.y,
-            frameId: null,
-            fileId: node.id,
-            width: node.width,
-            height: node.height,
-            seed: Math.floor(Math.random() * 100000),
-            updated: Date.now()
-        });
+            // create the image node
+            this.elements.push({
+                type: 'image',
+                version: 2,
+                versionNonce: Math.floor(Math.random() * 100000),
+                isDeleted: false,
+                id: node.id,
+                x: node.x,
+                y: node.y,
+                frameId: null,
+                fileId: node.id,
+                width: node.width,
+                height: node.height,
+                seed: Math.floor(Math.random() * 100000),
+                updated: Date.now()
+            });
 
-        // Store node bounds for arrow positioning
-        this.nodePositions[node.id] = {
-            x: node.x,
-            y: node.y,
-            width: node.width,
-            height: node.height
-        };
+            // Store node bounds for arrow positioning
+            this.nodePositions[node.id] = {
+                x: node.x,
+                y: node.y,
+                width: node.width,
+                height: node.height
+            };
+        }
+        catch(e) {
+            console.log(e);
+        }
     }
 
     convertTextNode(node) {
