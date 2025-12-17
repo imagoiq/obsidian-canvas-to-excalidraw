@@ -125,8 +125,8 @@ class CanvasToExcalidrawPlugin extends Plugin {
 
         // Extract colors with fallback
         const style = node.style || {};
-        const backgroundColor = style.backgroundColor || style.fill || '#ffffff';
-        const strokeColor = style.borderColor || style.stroke || '#000000';
+        const backgroundColor = style.backgroundColor || style.fill || '#e9ecef';
+        const strokeColor = style.borderColor || style.stroke || '#333333';
 
         // Word-wrapping logic with word boundaries
         const words = node.text.split(' ');
@@ -167,11 +167,11 @@ class CanvasToExcalidrawPlugin extends Plugin {
             width: nodeWidth,
             height: calculatedHeight,
             angle: 0,
-            strokeColor: "#AAAAAA",
+            strokeColor: "#666666",
             backgroundColor: backgroundColor,
-            fillStyle: 'solid',
-            strokeWidth: 2,
-            strokeStyle: 'solid',
+            fillStyle: "hachure",
+            strokeWidth: 1,
+            strokeStyle: "solid",
             roughness: 0,
             opacity: 100,
             seed: Math.floor(Math.random() * 100000),
@@ -223,10 +223,72 @@ class CanvasToExcalidrawPlugin extends Plugin {
         const toNode = this.nodePositions[edge.toNode];
 
         if (fromNode && toNode) {
-            const startX = fromNode.x + fromNode.width;
-            const startY = fromNode.y + fromNode.height / 2;
-            const endX = toNode.x;
-            const endY = toNode.y + toNode.height / 2;
+            const startElement = this.elements.find(node => node.id === edge.fromNode);
+            const endElement = this.elements.find(node => node.id === edge.toNode);
+
+            const startBindingId = startElement.type === 'text' ? `${startElement.id}-border`: startElement.id;
+            const endBindingId = endElement.type === 'text' ? `${endElement.id}-border`: endElement.id;
+
+            let startX;
+            let startXRelative;
+            let startY;
+            let startYRelative;
+            let endX;
+            let endXRelative;
+            let endY;
+            let endYRelative;
+
+            // start node
+            if(edge?.fromSide === 'top') {
+                startX = fromNode.x + fromNode.width / 2;
+                startY = fromNode.y;
+                startXRelative = 0.5;
+                startYRelative = 0.0;
+            }
+            if(edge?.fromSide === 'bottom') {
+                startX = fromNode.x + fromNode.width / 2;
+                startY = fromNode.y + fromNode.height;
+                startXRelative = 0.5;
+                startYRelative = 1.0;
+            }
+            if(edge?.fromSide === 'left') {
+                startX = fromNode.x;
+                startY = fromNode.y + fromNode.height / 2;
+                startXRelative = 0.0;
+                startYRelative = 0.5;
+            }
+            if(edge?.fromSide === 'right') {
+                startX = fromNode.x + fromNode.width
+                startY = fromNode.y + fromNode.height / 2;
+                startXRelative = 1.0;
+                startYRelative = 0.5;
+            }
+
+            // end node
+            if(edge?.toSide === 'top') {
+                endX = toNode.x + toNode.width / 2;
+                endY = toNode.y;
+                endXRelative = 0.5;
+                endYRelative = 0.0;
+            }
+            if(edge?.toSide === 'bottom') {
+                endX = toNode.x + toNode.width / 2;
+                endY = toNode.y + toNode.height;
+                endXRelative = 0.5;
+                endYRelative = 1.0;
+            }
+            if(edge?.toSide === 'left') {
+                endX = toNode.x;
+                endY = toNode.y + toNode.height / 2;
+                endXRelative = 0.0;
+                endYRelative = 0.5;
+            }
+            if(edge?.toSide === 'right') {
+                endX = toNode.x + toNode.width
+                endY = toNode.y + toNode.height / 2;
+                endXRelative = 1.0;
+                endYRelative = 0.5;
+            }
 
             this.elements.push({
                 type: 'arrow',
@@ -237,16 +299,50 @@ class CanvasToExcalidrawPlugin extends Plugin {
                 x: startX,
                 y: startY,
                 points: [[0, 0], [endX - startX, endY - startY]],
-                strokeColor: '#AAAAAA',  // Default to light gray for arrows
-                backgroundColor: 'transparent',
-                fillStyle: 'solid',
+                startBinding: {
+                    elementId: startBindingId,
+                    mode: "inside",
+                    fixedPoint: [
+                        startXRelative,
+                        startYRelative
+                    ]
+                },
+                endBinding: {
+                    elementId: endBindingId,
+                    mode: "inside",
+                    fixedPoint: [
+                        endXRelative,
+                        endYRelative
+                    ]
+                },
+                strokeColor: "#AAAAAA",
+                backgroundColor: "transparent",
+                fillStyle: "solid",
                 strokeWidth: 2,
-                strokeStyle: 'solid',
+                strokeStyle: "solid",
+                endArrowhead: "triangle",
+                elbowed: false,
                 roughness: 0,
                 opacity: 100,
                 seed: Math.floor(Math.random() * 100000),
                 updated: Date.now()
             });
+
+            // Add to bound elements property
+            this.elements = this.elements.map(element => {
+                if(element.id === startBindingId || element.id === endBindingId) {
+                    if(!('boundElements' in element)){
+                        element.boundElements = [];
+                    }
+
+                    element.boundElements.push({
+                        id: edge.id,
+                        type: "arrow"
+                    })
+                }
+
+                return element
+            })
         }
     }
 
