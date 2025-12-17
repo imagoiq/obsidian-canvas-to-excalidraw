@@ -39,19 +39,24 @@ class CanvasToExcalidrawPlugin extends Plugin {
             // Convert nodes to Excalidraw elements
             for (const node of canvasData.nodes) {
                 if(node.type === 'text') {
-                    this.addTextNode(node);
+                    this.convertTextNode(node);
                 }
                 if(node.type === 'file') {
-                    await this.addImageNode(node);
+                    await this.convertImageNode(node);
                 }
                 if(node.type === 'group') {
-                    await this.addGroupNode(node);
+                    await this.convertGroupNode(node);
                 }
             }
 
             // Convert edges to Excalidraw arrows with custom styles
             for (const edge of canvasData.edges) {
-                this.addArrowEdge(edge);
+                this.convertArrowEdge(edge);
+            }
+            
+            // Add elements inside Frame 
+            for (const frame of this.elements.filter(element => element.type === 'frame')) {
+                this.boundElementToFrame(frame);
             }
 
             const excalidrawData = {
@@ -76,7 +81,7 @@ class CanvasToExcalidrawPlugin extends Plugin {
         }
     }
 
-    async addImageNode(node) {
+    async convertImageNode(node) {
         const fileContent = await this.app.vault.adapter.readBinary(node.file);
 
         // create the file node
@@ -99,6 +104,7 @@ class CanvasToExcalidrawPlugin extends Plugin {
             id: node.id,
             x: node.x,
             y: node.y,
+            frameId: null,
             fileId: node.id,
             width: node.width,
             height: node.height,
@@ -115,7 +121,7 @@ class CanvasToExcalidrawPlugin extends Plugin {
         };
     }
 
-    addTextNode(node) {
+    convertTextNode(node) {
         const padding = 30;
         const nodeWidth = node.width || 300;
         const nodeHeight = node.height || 150;
@@ -218,7 +224,7 @@ class CanvasToExcalidrawPlugin extends Plugin {
         });
     }
 
-    addArrowEdge(edge) {
+    convertArrowEdge(edge) {
         const fromNode = this.nodePositions[edge.fromNode];
         const toNode = this.nodePositions[edge.toNode];
 
@@ -318,6 +324,7 @@ class CanvasToExcalidrawPlugin extends Plugin {
                 strokeColor: "#AAAAAA",
                 backgroundColor: "transparent",
                 fillStyle: "solid",
+                frameId:null,
                 strokeWidth: 2,
                 strokeStyle: "solid",
                 endArrowhead: "triangle",
@@ -346,7 +353,7 @@ class CanvasToExcalidrawPlugin extends Plugin {
         }
     }
 
-    addGroupNode(node) {
+    convertGroupNode(node) {
         this.elements.push({
             type: 'frame',
             version: 2,
@@ -355,15 +362,16 @@ class CanvasToExcalidrawPlugin extends Plugin {
             id: node.id,
             name: node.label,
             groupIds: [],
-            frameId: null,
             x: node.x,
             y: node.y,
             width: node.width,
             height: node.height,
             roughness: 0,
-            opacity: 40,
+            opacity: 100,
+            locked: false,
             seed: Math.floor(Math.random() * 100000),
-            updated: Date.now()
+            updated: Date.now(),
+            frameRole: "marker"
         });
 
         // Store node bounds for arrow positioning
@@ -375,9 +383,40 @@ class CanvasToExcalidrawPlugin extends Plugin {
         };
     }
 
+    boundElementToFrame(frame) {
+        // Add to bound elements property
+        this.elements = this.elements.map(element => {
+            if(element.type === 'frame') {
+                return element;
+            }
+
+            if(isWithinFrame(element, frame)) {
+                element.frameId = frame.id;
+            }
+
+            return element
+        })
+    }
+
     onunload() {
         console.log('Canvas to Excalidraw plugin unloaded');
     }
+}
+
+function isWithinFrame(innerBox, outerBox) {
+    // Destructure inner box and outer box coordinates and dimensions
+    const { x: innerX, y: innerY, width: innerWidth, height: innerHeight } = innerBox;
+    const { x: outerX, y: outerY, width: outerWidth, height: outerHeight } = outerBox;
+
+    // Check if the inner box's top-left corner is inside the outer box
+    const isTopLeftInside = innerX >= outerX && innerY >= outerY;
+
+    // Check if the inner box's bottom-right corner is inside the outer box
+    const isBottomRightInside = (innerX + innerWidth) <= (outerX + outerWidth) &&
+        (innerY + innerHeight) <= (outerY + outerHeight);
+
+    // The inner box is inside the outer box if both conditions are true
+    return isTopLeftInside && isBottomRightInside;
 }
 
 function arrayBufferToBase64( buffer ) {
